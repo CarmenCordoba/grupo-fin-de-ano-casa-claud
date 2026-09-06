@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grupo Fin de Año Casa Clau'd</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#222}
+.container{max-width:600px;margin:auto}
+h1{text-align:center;font-size:25px}
+.card{background:white;border-radius:15px;padding:18px;margin:15px 0;box-shadow:0 2px 8px #ccc}
+.total{font-size:32px;font-weight:bold;text-align:center}
+.member{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}
+button{width:100%;padding:13px;border:0;border-radius:10px;background:#222;color:white;font-size:16px;margin-top:8px}
+input,select{width:100%;padding:12px;margin:6px 0;box-sizing:border-box;border:1px solid #ccc;border-radius:8px}
+.expense{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
+.small{color:#777;font-size:13px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎉 Grupo Fin de Año Casa Clau'd</h1>
+
+<div class="card">
+<div class="small">SALDO TOTAL</div>
+<div class="total" id="total">0,00 €</div>
+</div>
+
+<div class="card">
+<h2>👥 Aportaciones</h2>
+<div id="members"></div>
+</div>
+
+<div class="card">
+<h2>💶 Registrar aportación</h2>
+
+<select id="person">
+<option>Tere</option>
+<option>Claudia</option>
+<option>Pili</option>
+<option>Javi</option>
+<option>Raúl</option>
+</select>
+
+<input id="amount" type="number" step="0.01" placeholder="Cantidad (€)">
+<button onclick="addPayment()">Añadir aportación</button>
+</div>
+
+<div class="card">
+<h2>💸 Registrar gasto</h2>
+
+<input id="expenseName" placeholder="Concepto del gasto">
+<input id="expenseAmount" type="number" step="0.01" placeholder="Cantidad (€)">
+<button onclick="addExpense()">Añadir gasto</button>
+</div>
+
+<div class="card">
+<h2>📋 Gastos</h2>
+<div id="expenses"></div>
+</div>
+
+</div>
+
+<script>
+const people=["Tere","Claudia","Pili","Javi","Raúl"];
+
+let payments=JSON.parse(localStorage.getItem("payments")||"[]");
+let expenses=JSON.parse(localStorage.getItem("expenses")||"[]");
+
+function save(){
+localStorage.setItem("payments",JSON.stringify(payments));
+localStorage.setItem("expenses",JSON.stringify(expenses));
+render();
+}
+
+function addPayment(){
+let person=document.getElementById("person").value;
+let amount=parseFloat(document.getElementById("amount").value);
+
+if(!amount || amount<=0){
+alert("Introduce una cantidad válida");
+return;
+}
+
+payments.push({person,amount});
+document.getElementById("amount").value="";
+save();
+}
+
+function addExpense(){
+let name=document.getElementById("expenseName").value;
+let amount=parseFloat(document.getElementById("expenseAmount").value);
+
+if(!name || !amount || amount<=0){
+alert("Introduce el concepto y una cantidad válida");
+return;
+}
+
+expenses.push({name,amount});
+document.getElementById("expenseName").value="";
+document.getElementById("expenseAmount").value="";
+save();
+}
+
+function render(){
+
+let paid={};
+people.forEach(p=>paid[p]=0);
+
+payments.forEach(x=>{
+if(paid[x.person]!==undefined) paid[x.person]+=x.amount;
+});
+
+let totalPaid=payments.reduce((s,x)=>s+x.amount,0);
+let totalExpenses=expenses.reduce((s,x)=>s+x.amount,0);
+let balance=totalPaid-totalExpenses;
+
+document.getElementById("total").textContent=
+balance.toFixed(2).replace(".",",")+" €";
+
+document.getElementById("members").innerHTML=
+people.map(p=>`
+<div class="member">
+<span>${p}</span>
+<strong>${paid[p].toFixed(2).replace(".",",")} €</strong>
+</div>
+`).join("");
+
+document.getElementById("expenses").innerHTML=
+expenses.length
+? expenses.map(e=>`
+<div class="expense">
+<span>${e.name}</span>
+<strong>-${e.amount.toFixed(2).replace(".",",")} €</strong>
+</div>
+`).join("")
+: "<div class='small'>Todavía no hay gastos.</div>";
+}
+
+render();
+</script>
+
+</body>
+</html>
